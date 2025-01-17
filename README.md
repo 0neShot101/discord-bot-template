@@ -17,4 +17,4 @@ git clone https://github.com/0neShot101/discord-bot-template.git
 cd discord-bot-template
 ```
 
-Now that I've walked you through, you can enjoy!
+Now that I've walked you through, you can enjoy! ChatGPT also generated the JSDocs so its easier for you to understand
