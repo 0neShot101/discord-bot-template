@@ -3,7 +3,7 @@ import {
   SlashCommandBuilder,
 } from 'discord.js';
 
-import Midnight from '..';
+import Client from '..';
 import Command from '../structures/Command';
 
 /**
@@ -30,7 +30,7 @@ export default new Command(
           .setColor('Green')
           .addFields(
             { 'name': 'API Latency', 'value': `${Date.now() - start}ms`, 'inline': true, },
-            { 'name': 'Gateway Latency', 'value': `${Midnight.ws.ping}ms`, 'inline': true, },
+            { 'name': 'Gateway Latency', 'value': `${Client.ws.ping}ms`, 'inline': true, },
           )
           .setTimestamp(),
       ],
