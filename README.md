@@ -1,20 +1,15 @@
-# My Discord Bot Template
-This is the template I use when I want to build something with Discord.js. It leverages event emitters for a nice architecture.
+# discord-bot-template
 
-## Installation
-
-Want to use my template?
-
-1. **Clone this repository**
-   Well, how do I do that?
+To install dependencies:
 
 ```bash
-git clone https://github.com/0neShot101/discord-bot-template.git
+bun install
 ```
 
-2. **Enter the directory**
+To run:
+
 ```bash
-cd discord-bot-template
+bun run src/index.ts
 ```
 
-Now that I've walked you through, you can enjoy! ChatGPT also generated the JSDocs so its easier for you to understand
+This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

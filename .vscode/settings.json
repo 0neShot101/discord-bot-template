@@ -1,0 +1,92 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit",
+    "source.fixAll.prettier": "explicit"
+  },
+
+  "files.eol": "\n",
+  "files.associations": {
+    "*.env*": "dotenv"
+  },
+
+  "emmet.includeLanguages": {
+    "typescript": "javascript"
+  },
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.preferences.useAliasesForRenames": true,
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  "eslint.validate": ["typescript", "javascript"],
+
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": false,
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.js.map",
+    "package.json": "package-lock.json, bun.lockb, yarn.lock, pnpm-lock.yaml",
+    "Dockerfile": "docker-compose.*, .dockerignore",
+    ".prettierrc":
+      ".prettierrc.*, .prettierrc.json, .prettierrc.yaml, .prettierrc.yml, .prettierignore",
+    ".gitignore":
+      ".gitignore.*, .gitattributes, .gitlab-ci.yml, .github/workflows/*, .github/ISSUE_TEMPLATE/*, .github/PULL_REQUEST_TEMPLATE/*",
+    ".env": ".env.*",
+    "tsconfig.json": "tsconfig.*.json"
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/coverage": true,
+    "**/logs": true
+  },
+
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/coverage": true,
+    "**/logs": true
+  },
+
+
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "debug.javascript.autoAttachFilter": "smart",
+
+  "json.schemas": [
+    {
+      "fileMatch": ["package.json"],
+      "url": "https://json.schemastore.org/package.json"
+    },
+    {
+      "fileMatch": ["tsconfig.json", "tsconfig.*.json"],
+      "url": "https://json.schemastore.org/tsconfig.json"
+    }
+  ]
+}
