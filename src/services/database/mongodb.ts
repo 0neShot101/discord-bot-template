@@ -65,7 +65,7 @@ client.on('commandSucceeded', handleCommandSucceeded);
 client
   .connect()
   .then(() => logger.info('🟢 Connected to MongoDB!'))
-  .catch(error => logger.error('❌ Failed to connect to MongoDB:', error));
+  .catch(error => logger.error('🔴 Failed to connect to MongoDB:', error));
 
 const mongodb = client.db(MONGODB_DB_NAME);
 
