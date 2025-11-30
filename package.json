@@ -25,6 +25,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@3xpo/events": "^1.0.18",
     "discord.js": "^14.15.3",
     "mongodb": "^7.0.0",
     "pino": "^10.1.0",

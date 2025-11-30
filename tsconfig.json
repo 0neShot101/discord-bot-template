@@ -37,7 +37,11 @@
       "@utils/*": ["./src/utils/*"],
       "@structures/*": ["./src/structures/*"],
       "@handlers/*": ["./src/handlers/*"],
-      "@services/*": ["./src/services/*"]
+      "@typings/*": ["./src/types/*"],
+      "@guards/*": ["./src/guards/*"],
+      "@services/*": ["./src/services/*"],
+      "@interactables/*": ["./src/interactables/*"],
+      "@src/*": ["./src/*"]
     },
 
     "types": ["bun-types"]
