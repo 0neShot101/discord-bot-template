@@ -1,3 +1,7 @@
+<p align="center">
+	<img src="https://i.imgur.com/ugzrV7e.png" alt="Discord Bot Template" width="200">
+</p>
+
 # Discord Bot Template
 
 <p align="center">
