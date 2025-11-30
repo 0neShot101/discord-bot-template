@@ -8,8 +8,8 @@ export class Event<Key extends keyof ClientEvents> {
     public once: boolean = false,
   ) {}
 
-  public run(fn: (...args: ClientEvents[Key]) => Promise<void> | void): this {
+  public run = (fn: (...args: ClientEvents[Key]) => Promise<void> | void): this => {
     this.execute = fn;
     return this;
-  }
+  };
 }
