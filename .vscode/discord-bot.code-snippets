@@ -1,0 +1,341 @@
+{
+  "Slash Command": {
+    "prefix": "command",
+    "body": [
+      "import { Command } from '@structures/Command';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyCommand} = new Command({",
+      "  'builder': builder => builder.setName('${2:name}').setDescription('${3:Description}'),",
+      "}).run(async interaction => {",
+      "  await interaction.reply({",
+      "    'content': '${4:Response}',",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a new slash command with a basic reply"
+  },
+  "Slash Command with Guards": {
+    "prefix": "command-guards",
+    "body": [
+      "import { cooldown } from '@guards/cooldown';",
+      "import { Command } from '@structures/Command';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyCommand} = new Command({",
+      "  'builder': builder => builder.setName('${2:name}').setDescription('${3:Description}'),",
+      "  'guards': [cooldown(${4:5}, '${5|user,guild,channel,global|}')],",
+      "}).run(async interaction => {",
+      "  await interaction.reply({",
+      "    'content': '${6:Response}',",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a new slash command with guard middleware"
+  },
+  "Slash Command with Subcommands": {
+    "prefix": "command-sub",
+    "body": [
+      "import { Command } from '@structures/Command';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyCommand} = new Command({",
+      "  'builder': builder =>",
+      "    builder",
+      "      .setName('${2:name}')",
+      "      .setDescription('${3:Description}')",
+      "      .addSubcommand(sub =>",
+      "        sub.setName('${4:subname}').setDescription('${5:Sub description}')",
+      "      ),",
+      "  'subcommands': {",
+      "    '${4:subname}': {",
+      "      'handler': async interaction => {",
+      "        await interaction.reply({",
+      "          'content': '${6:Subcommand response}',",
+      "          'flags': MessageFlags.Ephemeral,",
+      "        });",
+      "      },",
+      "    },",
+      "  },",
+      "}).run();"
+    ],
+    "description": "Creates a new slash command with subcommand routing"
+  },
+  "Context Menu Command (User)": {
+    "prefix": "context-user",
+    "body": [
+      "import { ContextMenuCommand } from '@structures/ContextMenuCommand';",
+      "import { ApplicationCommandType, MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyContextMenu} = new ContextMenuCommand({",
+      "  'builder': builder => builder.setName('${2:Menu Name}').setType(ApplicationCommandType.User),",
+      "}).run(async interaction => {",
+      "  if (!('targetUser' in interaction)) return;",
+      "  const user = interaction.targetUser;",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:User: \\${user.username\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a user context menu command (right-click on user)"
+  },
+  "Context Menu Command (Message)": {
+    "prefix": "context-message",
+    "body": [
+      "import { ContextMenuCommand } from '@structures/ContextMenuCommand';",
+      "import { ApplicationCommandType, MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyContextMenu} = new ContextMenuCommand({",
+      "  'builder': builder => builder.setName('${2:Menu Name}').setType(ApplicationCommandType.Message),",
+      "}).run(async interaction => {",
+      "  if (!('targetMessage' in interaction)) return;",
+      "  const message = interaction.targetMessage;",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:Message: \\${message.content\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a message context menu command (right-click on message)"
+  },
+  "Button Interaction": {
+    "prefix": "button",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyButton} = new Interaction({",
+      "  'type': 'button',",
+      "  'customId': '${2:button_id}',",
+      "}).run(async interaction => {",
+      "  await interaction.reply({",
+      "    'content': '${3:Button clicked!}',",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a button interaction handler with string matching"
+  },
+  "Button Interaction (Regex)": {
+    "prefix": "button-regex",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyButton} = new Interaction({",
+      "  'type': 'button',",
+      "  'customId': /^${2:prefix}_(.+)$/,",
+      "}).run(async interaction => {",
+      "  const match = interaction.customId.match(/^${2:prefix}_(.+)$$/);",
+      "  const id = match?.[1] ?? 'unknown';",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:Action for: \\${id\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a button interaction handler with regex matching for dynamic IDs"
+  },
+  "Modal Interaction": {
+    "prefix": "modal",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyModal} = new Interaction({",
+      "  'type': 'modal',",
+      "  'customId': '${2:modal_id}',",
+      "}).run(async interaction => {",
+      "  const ${3:fieldName} = interaction.fields.getTextInputValue('${4:field_id}');",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${5:Submitted: \\${$3\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a modal submission handler"
+  },
+  "String Select Menu": {
+    "prefix": "select-string",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MySelect} = new Interaction({",
+      "  'type': 'stringSelect',",
+      "  'customId': '${2:select_id}',",
+      "}).run(async interaction => {",
+      "  const selected = interaction.values.join(', ');",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:You selected: \\${selected\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a string select menu handler"
+  },
+  "User Select Menu": {
+    "prefix": "select-user",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyUserSelect} = new Interaction({",
+      "  'type': 'userSelect',",
+      "  'customId': '${2:user_select_id}',",
+      "}).run(async interaction => {",
+      "  const users = interaction.users.map(u => u.username).join(', ');",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:Selected users: \\${users\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a user select menu handler"
+  },
+  "Role Select Menu": {
+    "prefix": "select-role",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyRoleSelect} = new Interaction({",
+      "  'type': 'roleSelect',",
+      "  'customId': '${2:role_select_id}',",
+      "}).run(async interaction => {",
+      "  const roles = interaction.roles.map(r => r.name).join(', ');",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:Selected roles: \\${roles\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a role select menu handler"
+  },
+  "Channel Select Menu": {
+    "prefix": "select-channel",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:MyChannelSelect} = new Interaction({",
+      "  'type': 'channelSelect',",
+      "  'customId': '${2:channel_select_id}',",
+      "}).run(async interaction => {",
+      "  const channels = interaction.channels.map(c => ('name' in c ? c.name : c.id)).join(', ');",
+      "",
+      "  await interaction.reply({",
+      "    'content': `${3:Selected channels: \\${channels\\}}`,",
+      "    'flags': MessageFlags.Ephemeral,",
+      "  });",
+      "});"
+    ],
+    "description": "Creates a channel select menu handler"
+  },
+  "Autocomplete Handler": {
+    "prefix": "autocomplete",
+    "body": [
+      "import { Interaction } from '@structures/Interaction';",
+      "",
+      "export const ${1:MyAutocomplete} = new Interaction({",
+      "  'type': 'autocomplete',",
+      "  'customId': '${2:autocomplete_id}',",
+      "}).run(async interaction => {",
+      "  const focusedValue = interaction.options.getFocused().toLowerCase();",
+      "",
+      "  const choices = [",
+      "    { 'name': '${3:Option 1}', 'value': '${4:value1}' },",
+      "    { 'name': '${5:Option 2}', 'value': '${6:value2}' },",
+      "  ];",
+      "",
+      "  const filtered = choices",
+      "    .filter(choice => choice.name.toLowerCase().includes(focusedValue))",
+      "    .slice(0, 25);",
+      "",
+      "  await interaction.respond(filtered);",
+      "});"
+    ],
+    "description": "Creates an autocomplete handler for slash command options"
+  },
+  "Event Handler": {
+    "prefix": "event",
+    "body": [
+      "import { Event } from '@structures/Event';",
+      "import { logger } from '@utils/logger';",
+      "",
+      "export const ${1:myEvent} = new Event('${2|messageCreate,guildMemberAdd,guildMemberRemove,interactionCreate,ready,messageReactionAdd,messageReactionRemove,channelCreate,channelDelete,roleCreate,roleDelete,voiceStateUpdate|}').run(async ${3:args} => {",
+      "  logger.debug('${4:Event triggered}');",
+      "  $0",
+      "});"
+    ],
+    "description": "Creates a Discord.js event handler"
+  },
+  "Event Handler (Once)": {
+    "prefix": "event-once",
+    "body": [
+      "import { Event } from '@structures/Event';",
+      "import { logger } from '@utils/logger';",
+      "",
+      "export const ${1:myEvent} = new Event('${2|clientReady,shardReady|}', true).run(${3:client} => {",
+      "  logger.info('${4:Event fired once}');",
+      "  $0",
+      "});"
+    ],
+    "description": "Creates a once-only Discord.js event handler"
+  },
+  "Guard (Simple)": {
+    "prefix": "guard",
+    "body": [
+      "import { GuardBuilder } from '@structures/Guard';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:myGuard} = new GuardBuilder().run(async (interaction, next) => {",
+      "  const ${2:condition} = ${3:true};",
+      "",
+      "  if (!$2) {",
+      "    await interaction.reply({",
+      "      'content': '${4:You cannot use this command.}',",
+      "      'flags': MessageFlags.Ephemeral,",
+      "    });",
+      "    return;",
+      "  }",
+      "",
+      "  next();",
+      "});"
+    ],
+    "description": "Creates a guard middleware for commands"
+  },
+  "Guard (Factory)": {
+    "prefix": "guard-factory",
+    "body": [
+      "import { GuardBuilder } from '@structures/Guard';",
+      "import { MessageFlags } from 'discord.js';",
+      "",
+      "export const ${1:myGuard} = (${2:param}: ${3:string}) =>",
+      "  new GuardBuilder().run(async (interaction, next) => {",
+      "    const condition = ${4:true};",
+      "",
+      "    if (!condition) {",
+      "      await interaction.reply({",
+      "        'content': `${5:Guard failed for \\${$2\\}}`,",
+      "        'flags': MessageFlags.Ephemeral,",
+      "      });",
+      "      return;",
+      "    }",
+      "",
+      "    next();",
+      "  });"
+    ],
+    "description": "Creates a parameterized guard factory function"
+  }
+}
