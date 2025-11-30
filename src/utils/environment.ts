@@ -17,6 +17,7 @@ const ENV_VARS = {
   'DISCORD_DEVELOPMENT_GUILD_ID': undefined,
   'MONGODB_URI': undefined,
   'MONGODB_DB_NAME': undefined,
+  'REDIS_URL': undefined,
   'NODE_ENV': 'development',
   'LOG_LEVEL': 'info',
 } as const;
@@ -168,5 +169,6 @@ export const DISCORD_CLIENT_ID = config.DISCORD_CLIENT_ID;
 export const DISCORD_DEVELOPMENT_GUILD_ID = config.DISCORD_DEVELOPMENT_GUILD_ID;
 export const MONGODB_URI = config.MONGODB_URI;
 export const MONGODB_DB_NAME = config.MONGODB_DB_NAME;
+export const REDIS_URL = config.REDIS_URL;
 export const NODE_ENV = config.NODE_ENV;
 export const LOG_LEVEL = config.LOG_LEVEL;

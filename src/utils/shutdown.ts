@@ -6,7 +6,7 @@ export const shutdown = async () => {
   logger.info('🔴 Shutting down...');
 
   await client.close();
-  redis.close();
+  await redis.close();
 
   process.exit(0);
 };
