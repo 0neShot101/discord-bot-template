@@ -16,6 +16,13 @@ export class Interaction<T extends InteractionType> extends EventEmitter<Interac
   public readonly customId: InteractionMatcher<T>;
   private readonly guards: InteractionGuard<T>[] = [];
 
+  private getInteractionIdentifier = (interaction: InteractionFromType<T>): string | null => {
+    if ('customId' in interaction && typeof interaction.customId === 'string') return interaction.customId;
+    if ('commandName' in interaction && typeof interaction.commandName === 'string') return interaction.commandName;
+
+    return null;
+  };
+
   /**
    * Creates a new Interaction handler.
    * @param config - The interaction configuration with type, customId matcher, and optional guards.
@@ -32,10 +39,11 @@ export class Interaction<T extends InteractionType> extends EventEmitter<Interac
    * Checks if this interaction handler matches the given customId.
    */
   public matches = (interaction: InteractionFromType<T>): boolean => {
-    const customId = 'customId' in interaction ? interaction.customId : '';
+    const identifier = this.getInteractionIdentifier(interaction);
+    if (identifier === null) return false;
 
-    if (typeof this.customId === 'string') return customId === this.customId;
-    if (this.customId instanceof RegExp) return this.customId.test(customId);
+    if (typeof this.customId === 'string') return identifier === this.customId;
+    if (this.customId instanceof RegExp) return this.customId.test(identifier);
     if (typeof this.customId === 'function') return this.customId(interaction);
 
     return false;
