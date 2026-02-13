@@ -1,10 +1,10 @@
 import { loadCommands } from '@handlers/commands';
 import { loadEvents } from '@handlers/events';
 import { loadInteractions } from '@handlers/interactions';
+import { deploy } from '@utils/commandRegistry';
 import { DEFAULT_INTENTS, DEFAULT_PARTIALS } from '@utils/constants';
-import { DISCORD_TOKEN } from '@utils/environment';
+import { AUTO_REGISTER_COMMANDS, DISCORD_TOKEN } from '@utils/environment';
 import { logger } from '@utils/logger';
-import { registerCommands } from '@utils/registerCommands';
 import { Client, ClientOptions, Collection } from 'discord.js';
 
 import type { Interaction } from '@structures/Interaction';
@@ -28,10 +28,12 @@ class BotClient extends Client {
       await loadCommands(this);
       await loadInteractions(this);
       await loadEvents(this);
-      await registerCommands(this);
+
+      if (AUTO_REGISTER_COMMANDS === true) await deploy({ 'commands': this.commands });
+
       await this.login(DISCORD_TOKEN);
     } catch (error) {
-      logger.fatal(error, '🔴 Failed to login client');
+      logger.fatal(error, 'Failed to login client');
       throw error;
     }
   };

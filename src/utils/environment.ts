@@ -15,11 +15,12 @@ const ENV_VARS = {
   'DISCORD_TOKEN': undefined,
   'DISCORD_CLIENT_ID': undefined,
   'DISCORD_DEVELOPMENT_GUILD_ID': undefined,
-  'MONGODB_URI': undefined,
-  'MONGODB_DB_NAME': undefined,
-  'REDIS_URL': undefined,
+  'MONGODB_URI': '',
+  'MONGODB_DB_NAME': '',
+  'REDIS_URL': '',
   'NODE_ENV': 'development',
   'LOG_LEVEL': 'info',
+  'AUTO_REGISTER_COMMANDS': '',
 } as const;
 
 type EnvKey = keyof typeof ENV_VARS;
@@ -167,8 +168,11 @@ const config = await initConfig();
 export const DISCORD_TOKEN = config.DISCORD_TOKEN;
 export const DISCORD_CLIENT_ID = config.DISCORD_CLIENT_ID;
 export const DISCORD_DEVELOPMENT_GUILD_ID = config.DISCORD_DEVELOPMENT_GUILD_ID;
-export const MONGODB_URI = config.MONGODB_URI;
-export const MONGODB_DB_NAME = config.MONGODB_DB_NAME;
-export const REDIS_URL = config.REDIS_URL;
+export const MONGODB_URI = config.MONGODB_URI || undefined;
+export const MONGODB_DB_NAME = config.MONGODB_DB_NAME || undefined;
+export const REDIS_URL = config.REDIS_URL || undefined;
 export const NODE_ENV = config.NODE_ENV;
 export const LOG_LEVEL = config.LOG_LEVEL;
+export const AUTO_REGISTER_COMMANDS =
+  config.AUTO_REGISTER_COMMANDS.toLowerCase() === 'true' ||
+  (config.AUTO_REGISTER_COMMANDS === '' && config.NODE_ENV !== 'production');

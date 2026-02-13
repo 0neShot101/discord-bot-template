@@ -7,11 +7,21 @@ import { logger } from '@utils/logger';
 import { walkDirectory } from '@utils/walkDirectory';
 
 export const loadCommands = async (client: Client) => {
-  const commandsPath = join(process.cwd(), 'src', 'interactables', 'commands');
-  const files = await walkDirectory(commandsPath);
+  const base = join(process.cwd(), 'src', 'interactables');
+  const dirs = [join(base, 'commands'), join(base, 'contextMenus')];
+
+  const allFiles: string[] = [];
+  for (const dir of dirs) {
+    try {
+      const files = await walkDirectory(dir);
+      allFiles.push(...files);
+    } catch {
+      logger.debug({ dir }, 'Directory not found, skipping');
+    }
+  }
 
   const results = await Promise.all(
-    files
+    allFiles
       .filter(file => file.endsWith('.ts') || file.endsWith('.js'))
       .map(async file => {
         try {
@@ -24,12 +34,12 @@ export const loadCommands = async (client: Client) => {
 
           return commands.length;
         } catch (error) {
-          logger.error({ file, error }, '🔴 Failed to load command file');
+          logger.error({ file, error }, 'Failed to load command file');
           return 0;
         }
       }),
   );
 
   const count = results.reduce((a, b) => a + b, 0);
-  logger.info(`🟢 Loaded ${count} commands`);
+  logger.info(`Loaded ${count} command(s)`);
 };
