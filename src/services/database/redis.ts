@@ -16,9 +16,12 @@ class RedisCache {
       const instance = new RedisClient(REDIS_URL, {
         'maxRetries': 1,
       });
+
       await instance.connect();
       await instance.ping();
+
       this.client = instance;
+
       logger.info('🟢 Connected to Redis');
     } catch {
       this.client = undefined;
@@ -79,3 +82,4 @@ class RedisCache {
 }
 
 export const redis = new RedisCache();
+await redis.connect();
