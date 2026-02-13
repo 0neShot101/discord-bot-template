@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { logger } from '@utils/logger';
 
 import type { DeployScope } from '@typings/registry';
