@@ -7,6 +7,11 @@ class RedisCache {
   private readonly fallback = new Map<string, string | number | Buffer>();
 
   public connect = async (): Promise<void> => {
+    if (REDIS_URL === undefined) {
+      this.client = undefined;
+      return logger.info('🟠 Redis disabled (no REDIS_URL in .env) - using in-memory cache');
+    }
+
     try {
       const instance = new RedisClient(REDIS_URL, {
         'maxRetries': 1,
@@ -17,7 +22,7 @@ class RedisCache {
       logger.info('🟢 Connected to Redis');
     } catch {
       this.client = undefined;
-      logger.warn('🟠 Using in-memory cache after Redis connection failed');
+      logger.warn('🟠 Redis disabled after connection failed - using in-memory cache');
     }
   };
 
@@ -74,4 +79,3 @@ class RedisCache {
 }
 
 export const redis = new RedisCache();
-await redis.connect();

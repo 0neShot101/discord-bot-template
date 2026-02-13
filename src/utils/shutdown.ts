@@ -5,7 +5,7 @@ import { logger } from '@utils/logger';
 export const shutdown = async () => {
   logger.info('🔴 Shutting down...');
 
-  await client.close();
+  if (client !== undefined) await client.close().catch(() => {});
   await redis.close();
 
   process.exit(0);

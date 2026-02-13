@@ -15,8 +15,6 @@ const OPERATION_EMOJIS = {
 
 type OperationType = keyof typeof OPERATION_EMOJIS;
 
-const client = new MongoClient(MONGODB_URI as string, { 'monitorCommands': true });
-
 const hasNamespace = (reply: unknown): reply is { ns: string } =>
   typeof reply === 'object' && reply !== null && 'ns' in reply && typeof reply.ns === 'string';
 
@@ -59,14 +57,16 @@ const handleCommandSucceeded = (event: CommandSucceededEvent) => {
   );
 };
 
-client.on('commandStarted', handleCommandStarted);
-client.on('commandSucceeded', handleCommandSucceeded);
+const createClient = (): MongoClient | undefined => {
+  if (MONGODB_URI === undefined || MONGODB_DB_NAME === undefined) return undefined;
 
-client
-  .connect()
-  .then(() => logger.info('🟢 Connected to MongoDB!'))
-  .catch(error => logger.error('🔴 Failed to connect to MongoDB:', error));
+  const mongoClient = new MongoClient(MONGODB_URI, { 'monitorCommands': true });
 
-const mongodb = client.db(MONGODB_DB_NAME);
+  mongoClient.on('commandStarted', handleCommandStarted);
+  mongoClient.on('commandSucceeded', handleCommandSucceeded);
 
-export { client, mongodb };
+  return mongoClient;
+};
+
+export const client = createClient();
+export const mongodb = client !== undefined && MONGODB_DB_NAME !== undefined ? client.db(MONGODB_DB_NAME) : undefined;
