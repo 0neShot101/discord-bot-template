@@ -1,4 +1,4 @@
-import { client } from '@src/index';
+import { client } from '@src/client';
 import { Command } from '@structures/Command';
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 
