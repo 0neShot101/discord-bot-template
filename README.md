@@ -63,6 +63,27 @@ An opinionated Discord.js v14 starter that pairs Bun, TypeScript, and a modular 
 | `bun run typecheck` | Runs the TypeScript compiler with `--noEmit` for CI.
 | `bun run lint` | ESLint across the repo using the flat config in `eslint.config.js`.
 | `bun run format` | Applies Prettier to every supported file.
+| `bun run commands deploy` | Deploy slash commands to Discord (guild or global).
+| `bun run commands clear` | Remove all registered commands from Discord.
+| `bun run commands list` | Compare local commands against what Discord has registered.
+
+### Command Registration
+Slash commands need to be registered with Discord before they appear in servers. The template handles this automatically in development and gives you a CLI for production.
+
+**Development (automatic):** When `NODE_ENV=development` (the default), commands auto-register to your dev guild on startup. Guild-scoped commands propagate instantly so you can iterate fast. Hash-based change detection skips the API call if nothing changed.
+
+**Production (explicit):** Auto-registration is off by default in production. Deploy commands when you're ready:
+
+```bash
+bun run commands deploy          # auto-detects scope from NODE_ENV
+bun run commands deploy --global # force global registration
+bun run commands deploy --guild  # force guild registration
+bun run commands deploy --force  # skip change detection
+bun run commands clear --global  # remove all global commands
+bun run commands list            # diff local vs registered commands
+```
+
+**Separate dev/prod bots:** Use different `.env` files per environment with different bot credentials. The `.env` is gitignored so each environment gets its own config.
 
 ## Environment Variables
 | Key | Required | Description |
@@ -70,24 +91,28 @@ An opinionated Discord.js v14 starter that pairs Bun, TypeScript, and a modular 
 | `DISCORD_TOKEN` | Yes | Bot token from the Discord Developer Portal.
 | `DISCORD_CLIENT_ID` | Yes | Application (bot) ID used for slash command registration.
 | `DISCORD_DEVELOPMENT_GUILD_ID` | Yes | Guild ID used for registering commands during development.
-| `MONGODB_URI` | Yes | MongoDB connection string.
-| `MONGODB_DB_NAME` | Yes | Database name to use once connected.
-| `REDIS_URL` | Yes | Redis connection string (falls back to in-memory cache if unavailable).
+| `MONGODB_URI` | No | MongoDB connection string (leave empty to disable).
+| `MONGODB_DB_NAME` | No | Database name to use once connected (leave empty to disable).
+| `REDIS_URL` | No | Redis connection string (falls back to in-memory cache if unavailable).
 | `NODE_ENV` | No | Defaults to `development`. Controls logging verbosity and command registration scope.
 | `LOG_LEVEL` | No | Overrides default Pino log level.
+| `AUTO_REGISTER_COMMANDS` | No | Auto-register commands on startup. Defaults to `true` in development, `false` in production.
 
 > Tip: `src/utils/environment.ts` validates these keys at startup, creates `.env` if it is missing, and attempts to open the file in your editor when required keys are absent. Fill everything out once and the template will refuse to boot with incomplete configuration, saving time later.
 
 ## Project Layout
 ```
 src/
-  index.ts                # Bootstraps the client and graceful shutdown
+  index.ts                # Entry point, signal handlers, client.run()
+  client.ts               # Client instance (separate from index to avoid circular imports)
+  cli/                    # Command registration CLI (bun run commands)
   events/                 # Event definitions extending src/structures/Event.ts
   guards/                 # Middleware such as cooldown, access, permissions
   handlers/               # File system loaders for commands, events, interactions
   interactables/          # Slash commands, buttons, dropdowns, modals, context menus
-  services/database/      # MongoDB + Redis helpers
+  services/database/      # MongoDB + Redis helpers (lazy connections)
   structures/             # Base classes for commands, interactions, events, guards
+  types/                  # TypeScript type definitions
   utils/                  # Logging, env management, shutdown hooks, walkers
 ```
 
@@ -102,15 +127,16 @@ Path aliases (`@utils`, `@structures`, etc.) are defined in `tsconfig.json`, so 
 `src/utils/subCommandRouter.ts` parses the builder config and routes nested subcommands before your handler executes. Use the `subcommands` property when creating a `Command` to keep large commands tidy without manual switch statements.
 
 ## Data Layer
-- **MongoDB**: `src/services/database/mongodb.ts` connects once, logs operations, and shares a `mongodb` database handle you can import anywhere. Connections close cleanly via the global shutdown hook.
-- **Redis cache**: `src/services/database/redis.ts` wraps Bun's Redis client. If Redis is unreachable the template silently falls back to an in-memory map so your bot still boots in development.
+- **MongoDB**: `src/services/database/mongodb.ts` creates a client lazily — no connection happens until a command actually queries the database. Import `mongodb` and call `.collection()` anywhere. Operations are logged at debug level. Both MongoDB and its database name are optional; leave the env vars empty to disable.
+- **Redis cache**: `src/services/database/redis.ts` wraps Bun's Redis client. Call `redis.connect()` when you need it. If Redis is unreachable or unconfigured, it silently falls back to an in-memory map.
 - **Graceful shutdown**: `src/utils/shutdown.ts` listens to `SIGINT`/`SIGTERM`, closes database clients, and exits cleanly to avoid dangling connections.
 
 ## Deployment Notes
-1. Set `NODE_ENV=production` so slash commands register globally via the REST helper in `src/utils/registerCommands.ts`.
-2. Ensure MongoDB and Redis are reachable from your host (cloud services, managed instances, or Docker containers with exposed ports).
-3. Configure log rotation by mounting `./logs` or redirecting stdout wherever you deploy; production logging writes to `logs/app.log` and `logs/error.log`.
-4. Use `bun run build` followed by `bun start --watch` with a process manager (PM2, systemd) if you prefer running compiled output.
+1. Set `NODE_ENV=production` in your production `.env`.
+2. Deploy slash commands before going live: `bun run commands deploy`.
+3. Ensure MongoDB and Redis are reachable from your host if you use them (cloud services, managed instances, or Docker containers with exposed ports).
+4. Configure log rotation by mounting `./logs` or redirecting stdout wherever you deploy; production logging writes to `logs/app.log` and `logs/error.log`.
+5. Use `bun run build` followed by `bun start` with a process manager (PM2, systemd) if you prefer running compiled output.
 
 ---
 

@@ -41,7 +41,8 @@
       "@guards/*": ["./src/guards/*"],
       "@services/*": ["./src/services/*"],
       "@interactables/*": ["./src/interactables/*"],
-      "@src/*": ["./src/*"]
+      "@src/*": ["./src/*"],
+      "@cli/*": ["./src/cli/*"]
     },
 
     "types": ["bun-types"]
