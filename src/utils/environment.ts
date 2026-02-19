@@ -1,4 +1,4 @@
-import { exec as execCallback } from 'child_process';
+import { exec as execCallback, execFile as execFileCallback } from 'child_process';
 import { access, constants, readFile, writeFile } from 'fs/promises';
 import { EOL } from 'os';
 import util from 'util';
@@ -6,6 +6,7 @@ import util from 'util';
 import { logger } from '@utils/logger';
 
 const exec = util.promisify(execCallback);
+const execFile = util.promisify(execFileCallback);
 
 /**
  * Mapping of environment variable keys to their default values.
@@ -57,9 +58,14 @@ const isEditorAvailable = async (editor: string): Promise<boolean> => {
     // For Windows "start" command, we assume it's available
     if (editor.startsWith('start')) return true;
 
+    // Extract the executable name from the editor command (handles "code --wait" etc.)
+    const editorCommand = editor.split(/\s+/)[0];
+    if (!editorCommand) return false;
+
     // Check if the command exists using 'which' on Unix or 'where' on Windows
-    const checkCommand = process.platform === 'win32' ? `where ${editor}` : `which ${editor}`;
-    await exec(checkCommand, { 'cwd': process.cwd() });
+    // Use execFile to avoid shell injection vulnerabilities
+    const checkCommand = process.platform === 'win32' ? 'where' : 'which';
+    await execFile(checkCommand, [editorCommand], { 'cwd': process.cwd() });
     return true;
   } catch {
     return false;
@@ -125,13 +131,27 @@ const selectEditor = async (editors: string[]): Promise<string> => {
     'output': process.stdout,
   });
 
-  return new Promise<string>(resolve => {
+  return new Promise<string>((resolve, reject) => {
+    // Handle stdin closing or Ctrl+D
+    rl.on('close', () => {
+      logger.warn('Editor selection cancelled or stdin closed');
+      reject(new Error('Editor selection cancelled'));
+    });
+
+    // Handle SIGINT (Ctrl+C)
+    rl.on('SIGINT', () => {
+      logger.warn('Editor selection interrupted by user');
+      rl.close();
+      reject(new Error('Editor selection interrupted'));
+    });
+
     rl.on('line', input => {
       const choice = parseInt(input.trim(), 10);
       if (choice >= 1 && choice <= editors.length) {
         const selected = editors[choice - 1];
         rl.close();
         if (selected) resolve(selected);
+        else reject(new Error('Invalid editor selection'));
         // eslint-disable-next-line no-console
       } else console.log('Invalid choice. Please enter a number between 1 and', editors.length);
     });
@@ -163,10 +183,16 @@ const openEnvironmentEditor = async (): Promise<void> => {
   } else {
     const isInteractive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
 
-    if (isInteractive) {
-      selectedEditor = await selectEditor(availableEditors);
-      logger.info({ 'editor': selectedEditor }, 'User selected editor');
-    } else {
+    if (isInteractive)
+      try {
+        selectedEditor = await selectEditor(availableEditors);
+        logger.info({ 'editor': selectedEditor }, 'User selected editor');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.error({ message }, 'Editor selection failed');
+        return;
+      }
+    else {
       const firstEditor = availableEditors[0];
       if (!firstEditor) {
         logger.error('Failed to get first editor from list in non-interactive environment');
