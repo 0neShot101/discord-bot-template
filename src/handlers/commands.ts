@@ -11,14 +11,13 @@ export const loadCommands = async (client: Client) => {
   const dirs = [join(base, 'commands'), join(base, 'contextMenus')];
 
   const allFiles: string[] = [];
-  for (const dir of dirs) {
+  for (const dir of dirs)
     try {
       const files = await walkDirectory(dir);
       allFiles.push(...files);
     } catch {
       logger.debug({ dir }, 'Directory not found, skipping');
     }
-  }
 
   const results = await Promise.all(
     allFiles

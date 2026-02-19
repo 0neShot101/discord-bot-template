@@ -9,7 +9,7 @@ const exec = util.promisify(execCallback);
 
 /**
  * Mapping of environment variable keys to their default values.
- * Undefined values are required.
+ * Undefined values are required, empty strings are optional.
  */
 const ENV_VARS = {
   'DISCORD_TOKEN': undefined,
@@ -23,6 +23,11 @@ const ENV_VARS = {
   'AUTO_REGISTER_COMMANDS': '',
 } as const;
 
+/**
+ * Required environment variables that must be present.
+ */
+const REQUIRED_VARS: EnvKey[] = ['DISCORD_TOKEN', 'DISCORD_CLIENT_ID', 'DISCORD_DEVELOPMENT_GUILD_ID'];
+
 type EnvKey = keyof typeof ENV_VARS;
 
 export type AppConfig = { [K in EnvKey]: string };
@@ -33,7 +38,7 @@ export type AppConfig = { [K in EnvKey]: string };
 const getEditorCommand = (editor: string): string => {
   if (editor.startsWith('start')) return `${editor} .env`;
   if (editor === 'xdg-open') return `${editor} .env`;
-  if (editor === 'nano' || editor === 'vim')
+  if (editor === 'nano' || editor === 'vim' || editor === 'vi' || editor === 'nvim' || editor === 'emacs')
     return (
       `gnome-terminal -- ${editor} .env || ` +
       `xterm -e ${editor} .env || ` +
@@ -45,35 +50,125 @@ const getEditorCommand = (editor: string): string => {
 };
 
 /**
- * Attempts to open .env in the user's preferred or a fallback editor.
+ * Checks if an editor is available on the system.
  */
-const openEnvironmentEditor = async (): Promise<void> => {
-  logger.info('Attempting to open .env in an editor');
+const isEditorAvailable = async (editor: string): Promise<boolean> => {
+  try {
+    // For Windows "start" command, we assume it's available
+    if (editor.startsWith('start')) return true;
+
+    // Check if the command exists using 'which' on Unix or 'where' on Windows
+    const checkCommand = process.platform === 'win32' ? `where ${editor}` : `which ${editor}`;
+    await exec(checkCommand, { 'cwd': process.cwd() });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Gets a list of all available editors on the system.
+ */
+const getAvailableEditors = async (): Promise<string[]> => {
   const candidates: string[] = [];
   const { EDITOR, VISUAL } = process.env;
 
   if (EDITOR) candidates.push(EDITOR);
   if (VISUAL) candidates.push(VISUAL);
 
-  if (process.platform === 'win32') candidates.push('notepad', 'start ""');
-  else if (process.platform === 'darwin') candidates.push('open', 'code');
-  else candidates.push('code', 'gedit', 'kate', 'mousepad', 'leafpad', 'xdg-open', 'nano', 'vim');
+  // Platform-specific editor lists
+  if (process.platform === 'win32') candidates.push('notepad', 'code', 'subl', 'atom', 'notepad++', 'start ""');
+  else if (process.platform === 'darwin')
+    candidates.push('code', 'subl', 'atom', 'nano', 'vim', 'nvim', 'emacs', 'open', 'gedit', 'kate');
+  else
+    candidates.push(
+      'code',
+      'subl',
+      'atom',
+      'nano',
+      'vim',
+      'vi',
+      'nvim',
+      'emacs',
+      'gedit',
+      'kate',
+      'mousepad',
+      'leafpad',
+      'xdg-open',
+    );
 
-  for (const editor of candidates)
-    try {
-      logger.debug({ editor }, 'Trying to open .env');
+  // Check which editors are actually available
+  const available: string[] = [];
+  for (const editor of candidates) if (await isEditorAvailable(editor)) available.push(editor);
 
-      await exec(getEditorCommand(editor), { 'cwd': process.cwd() });
+  return available;
+};
 
-      logger.info({ editor }, 'Successfully opened .env');
+/**
+ * Prompts the user to select an editor from available options.
+ */
+const selectEditor = async (editors: string[]): Promise<string> => {
+  logger.info({ editors }, 'Multiple editors detected');
+  console.log('\n📝 Multiple text editors detected. Please select one:');
+  editors.forEach((editor, index) => {
+    console.log(`  ${index + 1}. ${editor}`);
+  });
+  console.log('\nEnter the number of your choice (or press Ctrl+C to cancel): ');
+
+  // Read user input from stdin
+  const readline = await import('readline');
+  const rl = readline.createInterface({
+    'input': process.stdin,
+    'output': process.stdout,
+  });
+
+  return new Promise<string>(resolve => {
+    rl.on('line', input => {
+      const choice = parseInt(input.trim(), 10);
+      if (choice >= 1 && choice <= editors.length) {
+        const selected = editors[choice - 1];
+        rl.close();
+        if (selected) resolve(selected);
+      } else console.log('Invalid choice. Please enter a number between 1 and', editors.length);
+    });
+  });
+};
+
+/**
+ * Attempts to open .env in the user's preferred or a fallback editor.
+ */
+const openEnvironmentEditor = async (): Promise<void> => {
+  logger.info('Attempting to open .env in an editor');
+
+  const availableEditors = await getAvailableEditors();
+
+  if (availableEditors.length === 0) {
+    logger.error('No text editors found on the system');
+    return;
+  }
+
+  let selectedEditor: string;
+  if (availableEditors.length === 1) {
+    const firstEditor = availableEditors[0];
+    if (!firstEditor) {
+      logger.error('Failed to get first editor from list');
       return;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-
-      logger.warn({ editor, message }, 'Failed to open .env with editor');
     }
+    selectedEditor = firstEditor;
+    logger.info({ 'editor': selectedEditor }, 'Using the only available editor');
+  } else {
+    selectedEditor = await selectEditor(availableEditors);
+    logger.info({ 'editor': selectedEditor }, 'User selected editor');
+  }
 
-  logger.error('Could not open .env in any editor');
+  try {
+    logger.debug({ 'editor': selectedEditor }, 'Trying to open .env');
+    await exec(getEditorCommand(selectedEditor), { 'cwd': process.cwd() });
+    logger.info({ 'editor': selectedEditor }, 'Successfully opened .env');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error({ 'editor': selectedEditor, message }, 'Failed to open .env with editor');
+  }
 };
 
 /**
@@ -127,7 +222,10 @@ const getValidatedConfig = (): AppConfig => {
     logger.debug({ key, raw, defaultValue, value }, 'Resolved env var');
 
     if (value && value.length > 0) config[key] = value;
-    else missing.push(key);
+    else if (REQUIRED_VARS.includes(key)) missing.push(key);
+    else
+      // Optional vars get empty string if not provided
+      config[key] = '';
   }
 
   if (missing.length > 0) {
