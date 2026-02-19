@@ -161,8 +161,23 @@ const openEnvironmentEditor = async (): Promise<void> => {
     selectedEditor = firstEditor;
     logger.info({ 'editor': selectedEditor }, 'Using the only available editor');
   } else {
-    selectedEditor = await selectEditor(availableEditors);
-    logger.info({ 'editor': selectedEditor }, 'User selected editor');
+    const isInteractive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+
+    if (isInteractive) {
+      selectedEditor = await selectEditor(availableEditors);
+      logger.info({ 'editor': selectedEditor }, 'User selected editor');
+    } else {
+      const firstEditor = availableEditors[0];
+      if (!firstEditor) {
+        logger.error('Failed to get first editor from list in non-interactive environment');
+        return;
+      }
+      selectedEditor = firstEditor;
+      logger.info(
+        { 'editor': selectedEditor },
+        'Non-interactive environment detected; using the first available editor by default',
+      );
+    }
   }
 
   try {
