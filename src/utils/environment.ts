@@ -109,10 +109,13 @@ const getAvailableEditors = async (): Promise<string[]> => {
  */
 const selectEditor = async (editors: string[]): Promise<string> => {
   logger.info({ editors }, 'Multiple editors detected');
+  // eslint-disable-next-line no-console
   console.log('\n📝 Multiple text editors detected. Please select one:');
   editors.forEach((editor, index) => {
+    // eslint-disable-next-line no-console
     console.log(`  ${index + 1}. ${editor}`);
   });
+  // eslint-disable-next-line no-console
   console.log('\nEnter the number of your choice (or press Ctrl+C to cancel): ');
 
   // Read user input from stdin
@@ -129,6 +132,7 @@ const selectEditor = async (editors: string[]): Promise<string> => {
         const selected = editors[choice - 1];
         rl.close();
         if (selected) resolve(selected);
+        // eslint-disable-next-line no-console
       } else console.log('Invalid choice. Please enter a number between 1 and', editors.length);
     });
   });
