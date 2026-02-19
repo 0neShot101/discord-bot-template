@@ -132,10 +132,14 @@ const selectEditor = async (editors: string[]): Promise<string> => {
   });
 
   return new Promise<string>((resolve, reject) => {
+    let resolved = false;
+
     // Handle stdin closing or Ctrl+D
     rl.on('close', () => {
-      logger.warn('Editor selection cancelled or stdin closed');
-      reject(new Error('Editor selection cancelled'));
+      if (!resolved) {
+        logger.warn('Editor selection cancelled or stdin closed');
+        reject(new Error('Editor selection cancelled'));
+      }
     });
 
     // Handle SIGINT (Ctrl+C)
@@ -150,8 +154,10 @@ const selectEditor = async (editors: string[]): Promise<string> => {
       if (choice >= 1 && choice <= editors.length) {
         const selected = editors[choice - 1];
         rl.close();
-        if (selected) resolve(selected);
-        else reject(new Error('Invalid editor selection'));
+        if (selected) {
+          resolved = true;
+          resolve(selected);
+        }
         // eslint-disable-next-line no-console
       } else console.log('Invalid choice. Please enter a number between 1 and', editors.length);
     });
